@@ -11,7 +11,9 @@ class ControllerExtensionModuleIntrumCdp extends Controller {
         $this->load->model('setting/setting');
         $this->load->model('extension/event');
         $this->model_extension_event->addEvent('cdp_payments', 'catalog/view/checkout/payment_method/before', 'extension/module/intrum_cdp/eventShowPaymentMethods');
-       // $this->model_extension_event->addEvent('cdp_payments', 'controller/checkout/payment_method/after', 'controller/extension/module/intrum_cdp');
+        $this->model_extension_event->addEvent('cdp_payments_saveorderid', 'catalog/controller/checkout/confirm/after', 'extension/module/intrum_cdp/eventSaveOrder');
+        $this->model_extension_event->addEvent('cdp_payments_success', 'catalog/controller/checkout/success/after', 'extension/module/intrum_cdp/eventSuccessBefore');
+
     }
     public function uninstall() {
         $this->load->model('setting/setting');
@@ -22,6 +24,8 @@ class ControllerExtensionModuleIntrumCdp extends Controller {
        // $this->model_setting_setting->editSetting('openbaypro', $settings);
 
         $this->model_extension_event->deleteEvent('cdp_payments');
+        $this->model_extension_event->deleteEvent('cdp_payments_saveorderid');
+        $this->model_extension_event->deleteEvent('cdp_payments_success');
     }
     /**
      * property named $error is defined to put errors
