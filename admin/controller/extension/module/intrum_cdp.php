@@ -35,6 +35,71 @@ class ControllerExtensionModuleIntrumCdp extends Controller {
     /**
      * Basic function of the controller. This can be called using route=module/intrum_cdp
      */
+
+    private function getStatuses()
+    {
+        $status["status1"] = Array("id" => 1, "name" => "There are serious negative indicators (status 1)");
+        $status["status2"] = Array("id" => 2, "name" => "All payment methods (status 2)");
+        $status["status3"] = Array("id" => 3, "name" => "Manual post-processing (currently not yet in use) (status 3)");
+        $status["status4"] = Array("id" => 4, "name" => "Postal address is incorrect (status 4)");
+        $status["status5"] = Array("id" => 5, "name" => "Enquiry exceeds the credit limit (the credit limit is specified in the cooperation agreement) (status 5)");
+        $status["status6"] = Array("id" => 6, "name" => "Customer specifications not met (optional) (status 6)");
+        $status["status7"] = Array("id" => 7, "name" => "Enquiry exceeds the net credit limit (enquiry amount plus open items exceeds credit limit) (status 7)");
+        $status["status8"] = Array("id" => 8, "name" => "Person queried is not of creditworthy age (status 8))");
+        $status["status9"] = Array("id" => 9, "name" => "Delivery address does not match invoice address (for payment guarantee only) (status 9)");
+        $status["status10"] = Array("id" => 10, "name" => "Household cannot be identified at this address (status 10))");
+        $status["status11"] = Array("id" => 11, "name" => "Country is not supported (status 11)");
+        $status["status12"] = Array("id" => 12, "name" => "Party queried is not a natural person (status 12)");
+        $status["status13"] = Array("id" => 13, "name" => "System is in maintenance mode (status 13)");
+        $status["status14"] = Array("id" => 14, "name" => "Address with high fraud risk (status 14)");
+        $status["status15"] = Array("id" => 15, "name" => "Allowance is too low (status 15)");
+        $status["status0"] = Array("id" => 0, "name" => "Fail to connect or Internal error (status Error)");
+
+        return $status;
+    }
+
+    private function getPaymentMehods()
+    {
+        $this->load->model('extension/extension');
+
+        $extensions = $this->model_extension_extension->getInstalled('payment');
+        $data = array();
+
+        $files = glob(DIR_APPLICATION . 'controller/{extension/payment,payment}/*.php', GLOB_BRACE);
+
+        if ($files) {
+            foreach ($files as $file) {
+                $extension = basename($file, '.php');
+                if (!in_array($extension, $extensions)) {
+                    continue;
+                }
+
+                $this->load->language('extension/payment/' . $extension);
+
+                $text_link = $this->language->get('text_' . $extension);
+
+                if ($text_link != 'text_' . $extension) {
+                    $link = $this->language->get('text_' . $extension);
+                } else {
+                    $link = '';
+                }
+
+                $data[] = array(
+                    'code'       => $extension,
+                    'name'       => $this->language->get('heading_title'),
+                    'link'       => $link,
+                    'status'     => $this->config->get($extension . '_status') ? $this->language->get('text_enabled') : $this->language->get('text_disabled'),
+                    'sort_order' => $this->config->get($extension . '_sort_order'),
+                    'install'   => $this->url->link('extension/extension/payment/install', 'token=' . $this->session->data['token'] . '&extension=' . $extension, true),
+                    'uninstall' => $this->url->link('extension/extension/payment/uninstall', 'token=' . $this->session->data['token'] . '&extension=' . $extension, true),
+                    'installed' => in_array($extension, $extensions),
+                    'edit'      => $this->url->link('extension/payment/' . $extension, 'token=' . $this->session->data['token'], true)
+                );
+            }
+        }
+        return $data;
+    }
+
     public function index() {
         /**
          * Loads the language file. Path of the file along with file name must be given
@@ -126,11 +191,56 @@ class ControllerExtensionModuleIntrumCdp extends Controller {
         if (isset($this->request->post['intrum_cdp_status'])) {
             $data['intrum_cdp_status'] = $this->request->post['intrum_cdp_status'];
         } else {
-            /**
-             * if the value do not exists in the post request then value is taken from the config i.e. setting table
-             */
             $data['intrum_cdp_status'] = $this->config->get('intrum_cdp_status');
         }
+        if (isset($this->request->post['intrum_cdp_mode'])) {
+            $data['intrum_cdp_mode'] = $this->request->post['intrum_cdp_mode'];
+        } else {
+            $data['intrum_cdp_mode'] = $this->config->get('intrum_cdp_mode');
+        }
+        if (isset($this->request->post['intrum_cdp_client_id'])) {
+            $data['intrum_cdp_client_id'] = $this->request->post['intrum_cdp_client_id'];
+        } else {
+            $data['intrum_cdp_client_id'] = $this->config->get('intrum_cdp_client_id');
+        }
+        if (isset($this->request->post['intrum_cdp_user_id'])) {
+            $data['intrum_cdp_user_id'] = $this->request->post['intrum_cdp_user_id'];
+        } else {
+            $data['intrum_cdp_user_id'] = $this->config->get('intrum_cdp_user_id');
+        }
+        if (isset($this->request->post['intrum_cdp_password'])) {
+            $data['intrum_cdp_password'] = $this->request->post['intrum_cdp_password'];
+        } else {
+            $data['intrum_cdp_password'] = $this->config->get('intrum_cdp_password');
+        }
+        if (isset($this->request->post['intrum_cdp_tech_email'])) {
+            $data['intrum_cdp_tech_email'] = $this->request->post['intrum_cdp_tech_email'];
+        } else {
+            $data['intrum_cdp_tech_email'] = $this->config->get('intrum_cdp_tech_email');
+        }
+        if (isset($this->request->post['intrum_cdp_threatmetrix_enabled'])) {
+            $data['intrum_cdp_threatmetrix_enabled'] = $this->request->post['intrum_cdp_threatmetrix_enabled'];
+        } else {
+            $data['intrum_cdp_threatmetrix_enabled'] = $this->config->get('intrum_cdp_threatmetrix_enabled');
+        }
+        if (isset($this->request->post['intrum_cdp_threatmetrix_id'])) {
+            $data['intrum_cdp_threatmetrix_id'] = $this->request->post['intrum_cdp_threatmetrix_id'];
+        } else {
+            $data['intrum_cdp_threatmetrix_id'] = $this->config->get('intrum_cdp_threatmetrix_id');
+        }
+        for ($i = 0 ; $i <= 15; $i++) {
+            if (isset($this->request->post['status_'.$i])) {
+                $data['intrum_cdp_status_'.$i] = $this->request->post['intrum_cdp_status_'.$i];
+            } else {
+                $data['intrum_cdp_status_'.$i] = $this->config->get('intrum_cdp_status_'.$i);
+            }
+            if (!isset($data['intrum_cdp_status_'.$i])) {
+                $data['intrum_cdp_status_'.$i] = Array();
+            }
+        }
+        $payments = $this->getPaymentMehods();
+        $data["payment_methods"] = $payments;
+        $data["statuses"] = $this->getStatuses();
         /**
          * Header data is loaded
          */
