@@ -23,7 +23,7 @@ function getClientIp() {
 
 
 
-function CreateCDPOpencartRequestIntrum($payment_address, $shipping_address, $session_data, $total, Config $config, $tmx) {
+function CreateCDPOpencartRequestIntrum($payment_address, $shipping_address, $session_data, $total, Config $config, $tmx, $customer_info) {
 
     $request = new ByjunoRequest();
     $request->setClientId($config->get("intrum_cdp_client_id"));
@@ -40,6 +40,11 @@ function CreateCDPOpencartRequestIntrum($payment_address, $shipping_address, $se
         $userPhone = $session_data["guest"]["telephone"];
         $userFax = $session_data["guest"]["fax"];
         $addressId = "guest";
+    } else {
+        $userEmail = $customer_info["email"];
+        $userPhone = $customer_info["telephone"];
+        $userFax = $customer_info["fax"];
+        $addressId = $payment_address["address_id"];
     }
 
     $lang = 'de';
@@ -92,34 +97,35 @@ function CreateCDPOpencartRequestIntrum($payment_address, $shipping_address, $se
     }
 
     /* shipping information */
-    $extraInfo["Name"] = 'DELIVERY_FIRSTNAME';
-    $extraInfo["Value"] = $shipping_address['firstname'];
-    $request->setExtraInfo($extraInfo);
+    if (isset($shipping_address)) {
+        $extraInfo["Name"] = 'DELIVERY_FIRSTNAME';
+        $extraInfo["Value"] = $shipping_address['firstname'];
+        $request->setExtraInfo($extraInfo);
 
-    $extraInfo["Name"] = 'DELIVERY_LASTNAME';
-    $extraInfo["Value"] = $shipping_address['lastname'];
-    $request->setExtraInfo($extraInfo);
+        $extraInfo["Name"] = 'DELIVERY_LASTNAME';
+        $extraInfo["Value"] = $shipping_address['lastname'];
+        $request->setExtraInfo($extraInfo);
 
-    $extraInfo["Name"] = 'DELIVERY_FIRSTLINE';
-    $extraInfo["Value"] = trim($shipping_address['address_1'].' '.$shipping_address['address_2']);
-    $request->setExtraInfo($extraInfo);
+        $extraInfo["Name"] = 'DELIVERY_FIRSTLINE';
+        $extraInfo["Value"] = trim($shipping_address['address_1'] . ' ' . $shipping_address['address_2']);
+        $request->setExtraInfo($extraInfo);
 
-    $extraInfo["Name"] = 'DELIVERY_HOUSENUMBER';
-    $extraInfo["Value"] = '';
-    $request->setExtraInfo($extraInfo);
+        $extraInfo["Name"] = 'DELIVERY_HOUSENUMBER';
+        $extraInfo["Value"] = '';
+        $request->setExtraInfo($extraInfo);
 
-    $extraInfo["Name"] = 'DELIVERY_COUNTRYCODE';
-    $extraInfo["Value"] = $shipping_address["iso_code_2"];
-    $request->setExtraInfo($extraInfo);
+        $extraInfo["Name"] = 'DELIVERY_COUNTRYCODE';
+        $extraInfo["Value"] = $shipping_address["iso_code_2"];
+        $request->setExtraInfo($extraInfo);
 
-    $extraInfo["Name"] = 'DELIVERY_POSTCODE';
-    $extraInfo["Value"] = $shipping_address['postcode'];
-    $request->setExtraInfo($extraInfo);
+        $extraInfo["Name"] = 'DELIVERY_POSTCODE';
+        $extraInfo["Value"] = $shipping_address['postcode'];
+        $request->setExtraInfo($extraInfo);
 
-    $extraInfo["Name"] = 'DELIVERY_TOWN';
-    $extraInfo["Value"] = $shipping_address['city'];
-    $request->setExtraInfo($extraInfo);
-
+        $extraInfo["Name"] = 'DELIVERY_TOWN';
+        $extraInfo["Value"] = $shipping_address['city'];
+        $request->setExtraInfo($extraInfo);
+    }
     if (!empty($orderId)) {
         $extraInfo["Name"] = 'ORDERID';
         $extraInfo["Value"] = $orderId;
@@ -136,86 +142,72 @@ function CreateCDPOpencartRequestIntrum($payment_address, $shipping_address, $se
 
 }
 
-function CreateCDPProceedOpencartRequestIntrum(\Shopware_Controllers_Frontend_PaymentInvoice $order)
+function CreateCDPProceedOpencartRequestIntrum($order, Config $config, $tmx)
 {
-    /* @var \Shopware\Models\Order\Billing $billing */
-    $billing = $order->getBilling();
-    /* @var \Shopware\Models\Order\Shipping $shipping */
-    $shipping = $order->getShipping();
-    $request = new \ByjunoRequest();
-    $request->setClientId(Shopware()->Config()->getByNamespace("ByjunoPayments", "byjuno_clientid"));
-    $request->setUserID(Shopware()->Config()->getByNamespace("ByjunoPayments", "byjuno_userid"));
-    $request->setPassword(Shopware()->Config()->getByNamespace("ByjunoPayments", "byjuno_password"));
+    $request = new ByjunoRequest();
+    $request->setClientId($config->get("intrum_cdp_client_id"));
+    $request->setUserID($config->get("intrum_cdp_user_id"));
+    $request->setPassword($config->get("intrum_cdp_password"));
     $request->setVersion("1.00");
-    $request->setRequestEmail(Shopware()->Config()->getByNamespace("ByjunoPayments", "byjuno_techemail"));
+    $request->setRequestEmail($config->get("intrum_cdp_tech_email"));
 
 
-    $sql     = 'SELECT `locale` FROM s_core_locales WHERE id = ' . intval(Shopware()->Shop()->getLocale()->getId());
-    $langName = Shopware()->Db()->fetchRow($sql);
     $lang = 'de';
-    if (!empty($langName["locale"]) && strlen($langName["locale"]) > 4) {
-        $lang = substr($langName["locale"], 0, 2);
+    if (!empty($order["language_code"]) && strlen($order["language_code"]) > 4) {
+        $lang = substr($order["language_code"], 0, 2);
     }
     $request->setLanguage($lang);
 
-    $request->setRequestId(uniqid((String)$billing->getId()));
-    $reference = $billing->getCustomer();
-    if (empty($reference)) {
-        $request->setCustomerReference("guest_".$billing->getId());
+    $request->setRequestId(uniqid((String)$order["order_id"]));
+    if ($order["customer_id"] == "0") {
+        $request->setCustomerReference(uniqid("guest_"));
     } else {
-        $request->setCustomerReference($billing->getCustomer()->getId());
+        $request->setCustomerReference($order["customer_id"]);
     }
-    $request->setFirstName((String)$billing->getFirstName());
-    $request->setLastName((String)$billing->getLastName());
-    $request->setFirstLine(trim((String)$billing->getStreet().' '.$billing->getAdditionalAddressLine1().' '.$billing->getAdditionalAddressLine1()));
-    $request->setCountryCode(strtoupper((String)$billing->getCountry()->getIso()));
-    $request->setPostCode((String)$billing->getZipCode());
-    $request->setTown((String)$billing->getCity());
+    $request->setFirstName((String)$order["payment_firstname"]);
+    $request->setLastName((String)$order["payment_lastname"]);
+    $request->setFirstLine(trim((String)$order["payment_address_1"].' '.$order["payment_address_2"]));
+    $request->setCountryCode(strtoupper((String)$order["payment_iso_code_2"]));
+    $request->setPostCode((String)$order["payment_postcode"]);
+    $request->setTown((String)$order["payment_city"]);
+    $request->setFax((String)$order["fax"]);
 
-	if (!empty($reference) && !empty($billing->getCustomer()->getBirthday()) && substr($billing->getCustomer()->getBirthday(), 0, 4) != '0000') {
-		$request->setDateOfBirth((String)$billing->getCustomer()->getBirthday());
-	}
-
-    $request->setTelephonePrivate((String)$billing->getPhone());
-    if (!empty($reference)) {
-        $request->setEmail((String)$billing->getCustomer()->getEmail());
-    }
+    $request->setTelephonePrivate((String)$order["telephone"]);
+    $request->setEmail((String)$order["email"]);
 
     $extraInfo["Name"] = 'ORDERCLOSED';
-    $extraInfo["Value"] = 'NO';
+    $extraInfo["Value"] = 'YES';
     $request->setExtraInfo($extraInfo);
 
     $extraInfo["Name"] = 'ORDERAMOUNT';
-    $extraInfo["Value"] = $order->getInvoiceAmount();
+    $extraInfo["Value"] = $order["total"];
     $request->setExtraInfo($extraInfo);
 
     $extraInfo["Name"] = 'ORDERCURRENCY';
-    $extraInfo["Value"] = $order->getCurrency();
+    $extraInfo["Value"] = $order["currency_code"];
     $request->setExtraInfo($extraInfo);
 
     $extraInfo["Name"] = 'IP';
     $extraInfo["Value"] = getClientIp();
     $request->setExtraInfo($extraInfo);
 
-    $tmx_enable = Shopware()->Config()->getByNamespace("ByjunoPayments", "byjuno_threatmetrixenable");
-    $tmxorgid = Shopware()->Config()->getByNamespace("ByjunoPayments", "byjuno_threatmetrix");
-    if (isset($tmx_enable) && $tmx_enable == 'Enabled' && isset($tmxorgid) && $tmxorgid != '' && !empty($_SESSION["byjuno_tmx"])) {
+    if (!empty($tmx)) {
         $extraInfo["Name"] = 'DEVICE_FINGERPRINT_ID';
-        $extraInfo["Value"] = $_SESSION["byjuno_tmx"];
+        $extraInfo["Value"] = $tmx;
         $request->setExtraInfo($extraInfo);
     }
 
     /* shipping information */
     $extraInfo["Name"] = 'DELIVERY_FIRSTNAME';
-    $extraInfo["Value"] = $shipping->getFirstName();
+    $extraInfo["Value"] = $order['shipping_firstname'];
     $request->setExtraInfo($extraInfo);
 
     $extraInfo["Name"] = 'DELIVERY_LASTNAME';
-    $extraInfo["Value"] = $shipping->getLastName();
+    $extraInfo["Value"] = $order['shipping_lastname'];
     $request->setExtraInfo($extraInfo);
 
     $extraInfo["Name"] = 'DELIVERY_FIRSTLINE';
-    $extraInfo["Value"] = trim((String)$shipping->getStreet().' '.$shipping->getAdditionalAddressLine1().' '.$shipping->getAdditionalAddressLine1());
+    $extraInfo["Value"] = trim($order['shipping_address_1'] . ' ' . $order['shipping_address_2']);
     $request->setExtraInfo($extraInfo);
 
     $extraInfo["Name"] = 'DELIVERY_HOUSENUMBER';
@@ -223,19 +215,19 @@ function CreateCDPProceedOpencartRequestIntrum(\Shopware_Controllers_Frontend_Pa
     $request->setExtraInfo($extraInfo);
 
     $extraInfo["Name"] = 'DELIVERY_COUNTRYCODE';
-    $extraInfo["Value"] = $shipping->getCountry()->getIso();
+    $extraInfo["Value"] = $order["shipping_iso_code_2"];
     $request->setExtraInfo($extraInfo);
 
     $extraInfo["Name"] = 'DELIVERY_POSTCODE';
-    $extraInfo["Value"] = $shipping->getZipCode();
+    $extraInfo["Value"] = $order['shipping_postcode'];
     $request->setExtraInfo($extraInfo);
 
     $extraInfo["Name"] = 'DELIVERY_TOWN';
-    $extraInfo["Value"] = $shipping->getCity();
+    $extraInfo["Value"] = $order['shipping_city'];
     $request->setExtraInfo($extraInfo);
 
     $extraInfo["Name"] = 'CONNECTIVTY_MODULE';
-    $extraInfo["Value"] = 'Byjuno ShopWare module 1.3.0';
+    $extraInfo["Value"] = 'Intrum Opencart module 1.0.0';
     $request->setExtraInfo($extraInfo);
     return $request;
 

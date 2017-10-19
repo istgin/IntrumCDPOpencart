@@ -73,6 +73,24 @@
                     </div>
                     <div class="form-group">
                         <!-- Entry label is mentioned here -->
+                        <label class="col-sm-2 control-label" for="input-status">Mode</label>
+
+                        <div class="col-sm-10">
+                            <!-- The name of the form inputs must start with the controller file name followed by a underscore
+                            like in this case "intrum_cdp_" after that status is added -->
+                            <select name="intrum_cdp_b2b" id="input-status" class="form-control">
+                                <?php if ($intrum_cdp_b2b == 'enabled') { ?>
+                                <option value="enabled" selected="selected">Enabled</option>
+                                <option value="disabled">Disabled</option>
+                                <?php } else { ?>
+                                <option value="enabled">Enabled</option>
+                                <option value="disabled" selected="selected">Disabled</option>
+                                <?php } ?>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <!-- Entry label is mentioned here -->
                         <label class="col-sm-2 control-label" for="input-status">Client ID</label>
 
                         <div class="col-sm-10">

@@ -11,6 +11,7 @@ class ControllerExtensionModuleIntrumCdp extends Controller {
         $this->load->model('setting/setting');
         $this->load->model('extension/event');
         $this->model_extension_event->addEvent('cdp_payments', 'catalog/view/checkout/payment_method/before', 'extension/module/intrum_cdp/eventShowPaymentMethods');
+        $this->model_extension_event->addEvent('cdp_payments_tmx', 'catalog/view/common/header/before', 'extension/module/intrum_cdp/eventShowTmx');
         $this->model_extension_event->addEvent('cdp_payments_saveorderid', 'catalog/controller/checkout/confirm/after', 'extension/module/intrum_cdp/eventSaveOrder');
         $this->model_extension_event->addEvent('cdp_payments_success', 'catalog/controller/checkout/success/after', 'extension/module/intrum_cdp/eventSuccessBefore');
 
@@ -24,6 +25,7 @@ class ControllerExtensionModuleIntrumCdp extends Controller {
        // $this->model_setting_setting->editSetting('openbaypro', $settings);
 
         $this->model_extension_event->deleteEvent('cdp_payments');
+        $this->model_extension_event->deleteEvent('cdp_payments_tmx');
         $this->model_extension_event->deleteEvent('cdp_payments_saveorderid');
         $this->model_extension_event->deleteEvent('cdp_payments_success');
     }
@@ -197,6 +199,11 @@ class ControllerExtensionModuleIntrumCdp extends Controller {
             $data['intrum_cdp_mode'] = $this->request->post['intrum_cdp_mode'];
         } else {
             $data['intrum_cdp_mode'] = $this->config->get('intrum_cdp_mode');
+        }
+        if (isset($this->request->post['intrum_cdp_b2b'])) {
+            $data['intrum_cdp_b2b'] = $this->request->post['intrum_cdp_b2b'];
+        } else {
+            $data['intrum_cdp_b2b'] = $this->config->get('intrum_cdp_b2b');
         }
         if (isset($this->request->post['intrum_cdp_client_id'])) {
             $data['intrum_cdp_client_id'] = $this->request->post['intrum_cdp_client_id'];

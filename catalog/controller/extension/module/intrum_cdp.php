@@ -38,30 +38,47 @@ class ControllerExtensionModuleIntrumCdp extends Controller {
     public function eventShowPaymentMethods($route, &$data) {
         $this->load->model('extension/extension');
         $this->load->model('setting/setting');
+        $this->load->model('account/customer');
         $totals = Array();
+        $shippingAddress = null;
+        if (isset($this->session->data["shipping_address"])) {
+            $shippingAddress = $this->session->data["shipping_address"];
+        }
 
         /* @var $cart Cart\Cart */
         $cart = $this->cart;
+        $tmx = "";
+        $intrum_cdp_threatmetrix_enabled = $this->config->get("intrum_cdp_threatmetrix_enabled");
+        $intrum_cdp_threatmetrix_id = $this->config->get("intrum_cdp_threatmetrix_id");
+        if ($intrum_cdp_threatmetrix_enabled == 'enabled' && !empty($intrum_cdp_threatmetrix_id) && !empty($this->session->data["intrum_tmx"])) {
+            $tmx = $this->session->data["intrum_tmx"];
+        }
+        $customer_info = array();
+        if (!empty($this->session->data["customer_id"])) {
+            $customer_info = $this->model_account_customer->getCustomer($this->session->data["customer_id"]);
+        }
+
         $request = CreateCDPOpencartRequestIntrum(
             $this->session->data["payment_address"],
-            $this->session->data["shipping_address"],
+            $shippingAddress,
             $this->session->data,
             $this->getTotal(),
             $this->config,
-            ""
+            $tmx,
+            $customer_info
         );
 
         $mode = $this->config->get("intrum_cdp_mode");
         $b2b = $this->config->get("intrum_cdp_b2b");
         $statusLog = "CDP request";
-        if ($request->getCompanyName1() != '' && $b2b == 'enable') {
+        if ($request->getCompanyName1() != '' && $b2b == 'enabled') {
             $statusLog = "CDP request for company";
             $xml = $request->createRequestCompany();
         } else {
             $xml = $request->createRequest();
         }
         $byjunoCommunicator = new ByjunoCommunicator();
-        if (isset($mode) && $mode == 'Live') {
+        if (isset($mode) && $mode == 'live') {
             $byjunoCommunicator->setServer('live');
         } else {
             $byjunoCommunicator->setServer('test');
@@ -79,16 +96,32 @@ class ControllerExtensionModuleIntrumCdp extends Controller {
             }
         }
         $disabled = $this->config->get("intrum_cdp_status_".$statusCDP);
-        $unset = false;
-        foreach($data["payment_methods"] as $method) {
-            if (in_array($method["code"], $disabled)) {
-                unset($data["payment_methods"][$method["code"]]);
-                $unset = true;
+        if (!empty($disabled)) {
+            $unset = false;
+            foreach ($data["payment_methods"] as $method) {
+                if (in_array($method["code"], $disabled)) {
+                    unset($data["payment_methods"][$method["code"]]);
+                    $unset = true;
+                }
+            }
+            if ($unset && empty($data["payment_methods"])) {
+                $this->load->language('checkout/checkout');
+                $data['error_warning'] = sprintf($this->language->get('error_no_payment'), $this->url->link('information/contact'));
             }
         }
-        if ($unset && empty($data["payment_methods"])) {
-            $this->load->language('checkout/checkout');
-            $data['error_warning'] = sprintf($this->language->get('error_no_payment'), $this->url->link('information/contact'));
+    }
+
+    public function eventShowTmx($route, &$data) {
+        $this->load->model('setting/setting');
+        $intrum_cdp_threatmetrix_enabled = $this->config->get("intrum_cdp_threatmetrix_enabled");
+        $intrum_cdp_threatmetrix_id = $this->config->get("intrum_cdp_threatmetrix_id");
+        if ($intrum_cdp_threatmetrix_enabled == 'enabled' && !empty($intrum_cdp_threatmetrix_id) && !isset($this->session->data["intrum_tmx"])) {
+            $this->session->data["intrum_tmx"] = session_id();
+            $session = $this->session->data["intrum_tmx"];
+            $data["analytics"][] = '<script type="text/javascript" src="https://h.online-metrix.net/fp/tags.js?org_id='.$intrum_cdp_threatmetrix_id.'&session_id='.$session.'&pageid=checkout"></script>
+<noscript>
+    <iframe style="width: 100px; height: 100px; border: 0; position: absolute; top: -5000px;" src="https://h.online-metrix.net/tags?org_id='.$intrum_cdp_threatmetrix_id.'&session_id='.$session.'&pageid=checkout"></iframe>
+</noscript>';
         }
     }
 
@@ -97,6 +130,50 @@ class ControllerExtensionModuleIntrumCdp extends Controller {
     }
 
     public function eventSuccessBefore($route, &$data) {
-        echo "get order info: ". $this->session->data['intrum_order'];
+        $this->load->model('checkout/order');
+        $this->load->model('setting/setting');
+        $this->load->model('account/customer');
+        $orderDetails = $this->model_checkout_order->getOrder($this->session->data['intrum_order']);
+
+        $tmx = "";
+        $intrum_cdp_threatmetrix_enabled = $this->config->get("intrum_cdp_threatmetrix_enabled");
+        $intrum_cdp_threatmetrix_id = $this->config->get("intrum_cdp_threatmetrix_id");
+        if ($intrum_cdp_threatmetrix_enabled == 'enabled' && !empty($intrum_cdp_threatmetrix_id) && !empty($this->session->data["intrum_tmx"])) {
+            $tmx = $this->session->data["intrum_tmx"];
+        }
+
+        $request = CreateCDPProceedOpencartRequestIntrum(
+            $orderDetails,
+            $this->config,
+            $tmx
+        );
+
+        $mode = $this->config->get("intrum_cdp_mode");
+        $b2b = $this->config->get("intrum_cdp_b2b");
+        $statusLog = "CDP order complete";
+        if ($request->getCompanyName1() != '' && $b2b == 'enabled') {
+            $statusLog = "CDP order complete for company";
+            $xml = $request->createRequestCompany();
+        } else {
+            $xml = $request->createRequest();
+        }
+        $byjunoCommunicator = new ByjunoCommunicator();
+        if (isset($mode) && $mode == 'live') {
+            $byjunoCommunicator->setServer('live');
+        } else {
+            $byjunoCommunicator->setServer('test');
+        }
+        $response = $byjunoCommunicator->sendRequest($xml);
+        $statusCDP = 0;
+        if (isset($response)) {
+            $byjunoResponse = new ByjunoResponse();
+            $byjunoResponse->setRawResponse($response);
+            $byjunoResponse->processResponse();
+            $statusCDP = (int)$byjunoResponse->getCustomerRequestStatus();
+            // $this->saveLog($request, $xml, $response, $statusCDP, $statusLog);
+            if (intval($statusCDP) > 15) {
+                $statusCDP = 0;
+            }
+        }
     }
 }
