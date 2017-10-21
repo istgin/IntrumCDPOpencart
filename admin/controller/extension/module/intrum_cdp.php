@@ -14,8 +14,23 @@ class ControllerExtensionModuleIntrumCdp extends Controller {
         $this->model_extension_event->addEvent('cdp_payments_tmx', 'catalog/view/common/header/before', 'extension/module/intrum_cdp/eventShowTmx');
         $this->model_extension_event->addEvent('cdp_payments_saveorderid', 'catalog/controller/checkout/confirm/after', 'extension/module/intrum_cdp/eventSaveOrder');
         $this->model_extension_event->addEvent('cdp_payments_success', 'catalog/controller/checkout/success/after', 'extension/module/intrum_cdp/eventSuccessBefore');
-
+        $this->db->query("
+            CREATE TABLE `" . DB_PREFIX . "plugin_byjuno_transactions` (
+              `id` int(11) NOT NULL AUTO_INCREMENT,
+              `requestid` varchar(100) COLLATE utf8_unicode_ci NOT NULL,
+              `requesttype` varchar(255) COLLATE utf8_unicode_ci NOT NULL,
+              `firstname` varchar(255) COLLATE utf8_unicode_ci NOT NULL,
+              `lastname` varchar(255) COLLATE utf8_unicode_ci NOT NULL,
+              `ip` varchar(255) COLLATE utf8_unicode_ci NOT NULL,
+              `status` varchar(255) COLLATE utf8_unicode_ci NOT NULL,
+              `datecolumn` datetime NOT NULL,
+              `xml_request` text COLLATE utf8_unicode_ci NOT NULL,
+              `xml_responce` text COLLATE utf8_unicode_ci NOT NULL,
+              PRIMARY KEY (`id`)
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
+		");
     }
+
     public function uninstall() {
         $this->load->model('setting/setting');
         $this->load->model('extension/event');
@@ -28,6 +43,7 @@ class ControllerExtensionModuleIntrumCdp extends Controller {
         $this->model_extension_event->deleteEvent('cdp_payments_tmx');
         $this->model_extension_event->deleteEvent('cdp_payments_saveorderid');
         $this->model_extension_event->deleteEvent('cdp_payments_success');
+        $this->db->query("DROP TABLE IF EXISTS `" . DB_PREFIX . "plugin_byjuno_transactions`");
     }
     /**
      * property named $error is defined to put errors

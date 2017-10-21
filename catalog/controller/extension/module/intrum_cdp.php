@@ -36,6 +36,7 @@ class ControllerExtensionModuleIntrumCdp extends Controller {
     }
 
     public function eventShowPaymentMethods($route, &$data) {
+
         $this->load->model('extension/extension');
         $this->load->model('setting/setting');
         $this->load->model('account/customer');
@@ -90,7 +91,7 @@ class ControllerExtensionModuleIntrumCdp extends Controller {
             $byjunoResponse->setRawResponse($response);
             $byjunoResponse->processResponse();
             $statusCDP = (int)$byjunoResponse->getCustomerRequestStatus();
-           // $this->saveLog($request, $xml, $response, $statusCDP, $statusLog);
+            SaveLog($this->db, $request, $xml, $response, $statusCDP, $statusLog);
             if (intval($statusCDP) > 15) {
                 $statusCDP = 0;
             }
@@ -170,7 +171,7 @@ class ControllerExtensionModuleIntrumCdp extends Controller {
             $byjunoResponse->setRawResponse($response);
             $byjunoResponse->processResponse();
             $statusCDP = (int)$byjunoResponse->getCustomerRequestStatus();
-            // $this->saveLog($request, $xml, $response, $statusCDP, $statusLog);
+            SaveLog($this->db, $request, $xml, $response, $statusCDP, $statusLog);
             if (intval($statusCDP) > 15) {
                 $statusCDP = 0;
             }

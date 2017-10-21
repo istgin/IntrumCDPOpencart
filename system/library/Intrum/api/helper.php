@@ -233,21 +233,19 @@ function CreateCDPProceedOpencartRequestIntrum($order, Config $config, $tmx)
 
 }
 
-function SaveLog(ByjunoS4Request $request, $xml_request, $xml_response, $status, $type, $firstName, $lastName)
-{
+function SaveLog($db, ByjunoRequest $request, $xml_request, $xml_response, $status, $type) {
     $sql     = '
-            INSERT INTO s_plugin_byjuno_transactions (requestid, requesttype, firstname, lastname, ip, status, datecolumn, xml_request, xml_responce)
-                    VALUES (?,?,?,?,?,?,?,?,?)
+            INSERT INTO '.DB_PREFIX.'plugin_byjuno_transactions
+            SET
+            requestid = \''.$db->escape($request->getRequestId()).'\',
+            requesttype = \''.$db->escape($type).'\',
+            firstname = \''.$db->escape($request->getFirstName()).'\',
+            lastname = \''.$db->escape($request->getLastName()).'\',
+            ip = \''.$db->escape($_SERVER['REMOTE_ADDR']).'\',
+            status = \''.$db->escape((($status != 0) ? $status : 'Error')).'\',
+            datecolumn = \''.$db->escape(date('Y-m-d\TH:i:sP')).'\',
+            xml_request = \''.$db->escape($xml_request).'\',
+            xml_responce = \''.$db->escape($xml_response).'\'
         ';
-    Shopware()->Db()->query($sql, Array(
-        $request->getRequestId(),
-        $type,
-        $firstName,
-        $lastName,
-        $_SERVER['REMOTE_ADDR'],
-        (($status != "") ? $status : 'Error'),
-        date('Y-m-d\TH:i:sP'),
-        $xml_request,
-        $xml_response
-    ));
+    $db->query($sql);
 }
