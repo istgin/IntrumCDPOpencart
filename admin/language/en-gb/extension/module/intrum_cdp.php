@@ -1,6 +1,6 @@
 <?php
 // Heading
-$_['heading_title']    = 'Intrum CDP';
+$_['heading_title']    = 'Intrum CDP (1.0.0)';
 
 $_['text_extension']   = 'Extensions';
 $_['text_module']      = 'Modules';
