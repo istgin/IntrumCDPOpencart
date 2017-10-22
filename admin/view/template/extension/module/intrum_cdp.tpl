@@ -79,7 +79,7 @@
                             </div>
                             <div class="form-group">
                                 <!-- Entry label is mentioned here -->
-                                <label class="col-sm-2 control-label" for="input-status">Mode</label>
+                                <label class="col-sm-2 control-label" for="input-status">B2B</label>
 
                                 <div class="col-sm-10">
                                     <!-- The name of the form inputs must start with the controller file name followed by a underscore

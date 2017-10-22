@@ -320,7 +320,7 @@ class ControllerExtensionModuleIntrumCdp extends Controller {
         $this->load->model('setting/setting');
         $this->load->model('extension/intrum_log');
 
-        $data['heading_title'] = $this->language->get('heading_title');
+        $data['heading_title'] = "Intrum CDP transaction logs";
 
         $data['text_edit'] = $this->language->get('text_edit');
         $data['text_enabled'] = $this->language->get('text_enabled');
@@ -362,7 +362,7 @@ class ControllerExtensionModuleIntrumCdp extends Controller {
         /**
          * Cancel/back button url which will lead you to module list
          */
-        $data['cancel'] = $this->url->link('extension/extension', 'token=' . $this->session->data['token'] . '&type=module', true);
+        $data['cancel'] = $this->url->link('extension/module/intrum_cdp', 'token=' . $this->session->data['token'] . '&type=module', true);
 
         $sort = 'c.id';
         $order = 'DESC';
@@ -395,7 +395,7 @@ class ControllerExtensionModuleIntrumCdp extends Controller {
                 'ip'    => $result['ip'],
                 'status'    => $result['status'],
                 'datecolumn'    => $result['datecolumn'],
-                'edit'    => $this->url->link('extension/module/intrum_cdp/edit', 'token=' . $this->session->data['token'] . '&id=' . $result['id'] . $url, true)
+                'edit'    => $this->url->link('extension/module/intrum_cdp/edit', 'token=' . $this->session->data['token'] . '&logid=' . $result['id'] . $url, true)
             );
         }
 
@@ -425,6 +425,110 @@ class ControllerExtensionModuleIntrumCdp extends Controller {
         $data['intrumsettingstab'] = $this->url->link('extension/module/intrum_cdp', 'token=' . $this->session->data['token'], true);
 
         $this->response->setOutput($this->load->view('extension/module/intrum_cdp_logs', $data));
+
+    }
+
+    public function edit() {
+
+        $data = Array();
+        /**
+         * Loads the language file. Path of the file along with file name must be given
+         */
+        $this->load->language('extension/module/intrum_cdp');
+        /**
+         * Sets the title to the html page
+         */
+        $this->document->setTitle($this->language->get('heading_title'));
+        /**
+         * Loads the model file. Path of the file to be given
+         */
+        $this->load->model('setting/setting');
+        $this->load->model('extension/intrum_log');
+
+        $data['heading_title'] = "Intrum CDP transaction";
+
+        $data['text_edit'] = $this->language->get('text_edit');
+        $data['text_enabled'] = $this->language->get('text_enabled');
+        $data['text_disabled'] = $this->language->get('text_disabled');
+
+        $data['entry_status'] = $this->language->get('entry_status');
+
+        $data['button_save'] = $this->language->get('button_save');
+        $data['button_cancel'] = $this->language->get('button_cancel');
+        /**
+         * If there is any warning in the private property '$error', then it will be put into '$data' array
+         */
+        if (isset($this->error['warning'])) {
+            $data['error_warning'] = $this->error['warning'];
+        } else {
+            $data['error_warning'] = '';
+        }
+        /**
+         * Breadcrumbs are declared as array
+         */
+        $data['breadcrumbs'] = array();
+        /**
+         * Breadcrumbs are defined
+         */
+        $data['breadcrumbs'][] = array(
+            'text' => $this->language->get('text_home'),
+            'href' => $this->url->link('common/dashboard', 'token=' . $this->session->data['token'], true)
+        );
+
+        $data['breadcrumbs'][] = array(
+            'text' => $this->language->get('text_extension'),
+            'href' => $this->url->link('extension/extension', 'token=' . $this->session->data['token'] . '&type=module', true)
+        );
+
+        $data['breadcrumbs'][] = array(
+            'text' => $this->language->get('heading_title'),
+            'href' => $this->url->link('extension/module/intrum_cdp', 'token=' . $this->session->data['token'], true)
+        );
+        /**
+         * Cancel/back button url which will lead you to module list
+         */
+        $data['cancel'] = 'javascript:window.history.back()';
+
+        $logid = 0;
+        if (isset($this->request->get['logid'])) {
+            $logid = $this->request->get['logid'];
+        }
+
+        $data["log"] = $this->model_extension_intrum_log->getLog($logid);
+        if ($data["log"]) {
+            $domInput = new DOMDocument();
+            $domInput->preserveWhiteSpace = FALSE;
+            $domInput->loadXML($data["log"]["xml_request"]);
+            $elem = $domInput->getElementsByTagName('Request');
+            $elem->item(0)->removeAttribute("UserID");
+            $elem->item(0)->removeAttribute("Password");
+
+            $domInput->formatOutput = TRUE;
+            libxml_use_internal_errors(true);
+            $testXml = simplexml_load_string($data["log"]["xml_responce"]);
+            $domOutput = new \DOMDocument();
+            $domOutput->preserveWhiteSpace = FALSE;
+            $data["log"]["xml_request"] = '<code style="width: 100%; word-wrap: break-word; white-space: pre-wrap;">'.htmlspecialchars($domInput->saveXml()).'</code>';
+            if ($testXml) {
+                $domOutput->loadXML($data["log"]["xml_responce"]);
+                $domOutput->formatOutput = TRUE;
+                $data["log"]["xml_responce"] = '<code style="width: 100%; word-wrap: break-word; white-space: pre-wrap;">'.htmlspecialchars($domOutput->saveXml()).'</code>';
+            }
+            else {
+                $data["log"]["xml_responce"] = 'Response empty';
+            }
+        }
+
+
+
+        $data['header'] = $this->load->controller('common/header');
+        $data['column_left'] = $this->load->controller('common/column_left');
+        $data['footer'] = $this->load->controller('common/footer');
+
+        $data['intrumlogtab'] = $this->url->link('extension/module/intrum_cdp/intrumlog', 'token=' . $this->session->data['token'], true);
+        $data['intrumsettingstab'] = $this->url->link('extension/module/intrum_cdp', 'token=' . $this->session->data['token'], true);
+
+        $this->response->setOutput($this->load->view('extension/module/intrum_cdp_log_view', $data));
 
     }
 }
