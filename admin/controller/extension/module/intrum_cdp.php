@@ -280,6 +280,10 @@ class ControllerExtensionModuleIntrumCdp extends Controller {
          * Using this function tpl file is called and all the data of controller is passed through '$data' array
          * This is for Opencart 2.2.0.0 version. There will be minor changes as per the version.
          */
+
+        $this->load->model('extension/intrum_log');
+        $this->getList($data);
+
         $this->response->setOutput($this->load->view('extension/module/intrum_cdp', $data));
     }
     /**
@@ -296,5 +300,69 @@ class ControllerExtensionModuleIntrumCdp extends Controller {
         }
 
         return !$this->error;
+    }
+
+    protected function getList(&$data) {
+        $sort = 'c.id';
+        $order = 'DESC';
+
+        if (isset($this->request->get['page'])) {
+            $page = $this->request->get['page'];
+        } else {
+            $page = 1;
+        }
+        $url = '';
+
+        $data['logs'] = array();
+        $filter_data = array(
+            'sort'  => $sort,
+            'order' => $order,
+            'start' => ($page - 1) * $this->config->get('config_limit_admin'),
+            'limit' => $this->config->get('config_limit_admin')
+        );
+
+        $logs_total = $this->model_extension_intrum_log->getTotalLogs();
+
+        $results = $this->model_extension_intrum_log->getLogs($filter_data);
+
+        foreach ($results as $result) {
+            $data['logs'][] = array(
+                'id' => $result['id'],
+                'requestid' => $result['requestid'],
+                'requesttype'    => $result['requesttype'],
+                'firstname'    => $result['firstname'],
+                'lastname'    => $result['lastname'],
+                'ip'    => $result['ip'],
+                'status'    => $result['status'],
+                'datecolumn'    => $result['datecolumn'],
+                'edit'    => $this->url->link('extension/module/intrum_cdp/edit', 'token=' . $this->session->data['token'] . '&id=' . $result['id'] . $url, true)
+            );
+        }
+
+        $data['text_list'] = $this->language->get('text_list');
+        $data['button_edit'] = $this->language->get('button_edit');
+
+
+        $url = '';
+        if (isset($this->request->get['page'])) {
+            $url .= '&page=' . $this->request->get['page'];
+        }
+        $pagination = new Pagination();
+        $pagination->total = $logs_total;
+        $pagination->page = $page;
+        $pagination->limit = $this->config->get('config_limit_admin');
+        $pagination->url = $this->url->link('extension/module/intrum_cdp', 'token=' . $this->session->data['token'] . $url . '&page={page}', true);
+
+        $data['pagination'] = $pagination->render();
+
+        $data['results'] = sprintf($this->language->get('text_pagination'), ($logs_total) ? (($page - 1) * $this->config->get('config_limit_admin')) + 1 : 0, ((($page - 1) * $this->config->get('config_limit_admin')) > ($logs_total - $this->config->get('config_limit_admin'))) ? $logs_total : ((($page - 1) * $this->config->get('config_limit_admin')) + $this->config->get('config_limit_admin')), $logs_total, ceil($logs_total / $this->config->get('config_limit_admin')));
+
+        $data['sort'] = $sort;
+        $data['order'] = $order;
+
+        $data['header'] = $this->load->controller('common/header');
+        $data['column_left'] = $this->load->controller('common/column_left');
+        $data['footer'] = $this->load->controller('common/footer');
+
     }
 }
