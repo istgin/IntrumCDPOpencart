@@ -221,7 +221,7 @@
 
                             <div class="form-group">
                                 <div class="col-sm-10">
-                                    <b style="font-size: 20px">Payment method mepping</b>
+                                    <b style="font-size: 20px">Payment method mapping</b>
                                 </div>
                             </div>
                             <?php foreach($payment_methods as $payment) { ?>
