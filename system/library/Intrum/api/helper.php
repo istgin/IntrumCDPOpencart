@@ -74,7 +74,7 @@ function CreateCDPOpencartRequestIntrum($payment_address, $shipping_address, $se
     $g = $config->get("intrum_cdp_gender_id");
     $request->setGender('0');
     $gender_male_possible_prefix = explode(";", strtolower($config->get("intrum_cdp_gender_male_possible_prefix_array")));
-    $gender_female_possible_prefix = explode(";", strtolower($config->get("intrum_cdp_gender_female_possible_prefix")));
+    $gender_female_possible_prefix = explode(";", strtolower($config->get("intrum_cdp_gender_female_possible_prefix_array")));
 
     if (isset($g) && intval($g) > 0 && isset($payment_address["custom_field"][$g])) {
         if (in_array(strtolower($payment_address["custom_field"][$g]), $gender_male_possible_prefix)) {
@@ -204,7 +204,7 @@ function CreateCDPProceedOpencartRequestIntrum($order, Config $config, $tmx)
     $g = $config->get("intrum_cdp_gender_id");
     $request->setGender('0');
     $gender_male_possible_prefix = explode(";", strtolower($config->get("intrum_cdp_gender_male_possible_prefix_array")));
-    $gender_female_possible_prefix = explode(";", strtolower($config->get("intrum_cdp_gender_female_possible_prefix")));
+    $gender_female_possible_prefix = explode(";", strtolower($config->get("intrum_cdp_gender_female_possible_prefix_array")));
 
     if (isset($g) && intval($g) > 0 && isset($order["payment_custom_field"][$g])) {
         if (in_array(strtolower($order["payment_custom_field"][$g]), $gender_male_possible_prefix)) {
