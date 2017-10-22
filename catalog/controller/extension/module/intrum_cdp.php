@@ -47,7 +47,6 @@ class ControllerExtensionModuleIntrumCdp extends Controller {
             if (isset($this->session->data["shipping_address"])) {
                 $shippingAddress = $this->session->data["shipping_address"];
             }
-
             /* @var $cart Cart\Cart */
             $cart = $this->cart;
             $tmx = "";

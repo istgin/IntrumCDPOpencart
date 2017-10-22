@@ -251,6 +251,26 @@ class ControllerExtensionModuleIntrumCdp extends Controller {
         } else {
             $data['intrum_cdp_threatmetrix_id'] = $this->config->get('intrum_cdp_threatmetrix_id');
         }
+        if (isset($this->request->post['intrum_cdp_gender_id'])) {
+            $data['intrum_cdp_gender_id'] = $this->request->post['intrum_cdp_gender_id'];
+        } else {
+            $data['intrum_cdp_gender_id'] = $this->config->get('intrum_cdp_gender_id');
+        }
+        if (isset($this->request->post['intrum_cdp_gender_male_possible_prefix_array'])) {
+            $data['intrum_cdp_gender_male_possible_prefix_array'] = $this->request->post['intrum_cdp_gender_male_possible_prefix_array'];
+        } else {
+            $data['intrum_cdp_gender_male_possible_prefix_array'] = $this->config->get('intrum_cdp_gender_male_possible_prefix_array');
+        }
+        if (isset($this->request->post['intrum_cdp_gender_female_possible_prefix_array'])) {
+            $data['intrum_cdp_gender_female_possible_prefix_array'] = $this->request->post['intrum_cdp_gender_female_possible_prefix_array'];
+        } else {
+            $data['intrum_cdp_gender_female_possible_prefix_array'] = $this->config->get('intrum_cdp_gender_female_possible_prefix_array');
+        }
+        if (isset($this->request->post['intrum_cdp_dob_id'])) {
+            $data['intrum_cdp_dob_id'] = $this->request->post['intrum_cdp_dob_id'];
+        } else {
+            $data['intrum_cdp_dob_id'] = $this->config->get('intrum_cdp_dob_id');
+        }
         for ($i = 0 ; $i <= 15; $i++) {
             if (isset($this->request->post['status_'.$i])) {
                 $data['intrum_cdp_status_'.$i] = $this->request->post['intrum_cdp_status_'.$i];

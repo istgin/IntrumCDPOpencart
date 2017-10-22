@@ -47,6 +47,7 @@ function CreateCDPOpencartRequestIntrum($payment_address, $shipping_address, $se
         $addressId = $payment_address["address_id"];
     }
 
+
     $lang = 'de';
     if (!empty($session_data["language"]) && strlen($session_data["language"]) > 4) {
         $lang = substr($session_data["language"], 0, 2);
@@ -70,7 +71,31 @@ function CreateCDPOpencartRequestIntrum($payment_address, $shipping_address, $se
         $request->setCompanyName1($payment_address["company"]);
     }
 
-    $request->setGender(0);
+    $g = $config->get("intrum_cdp_gender_id");
+    $request->setGender('0');
+    $gender_male_possible_prefix = explode(";", strtolower($config->get("intrum_cdp_gender_male_possible_prefix_array")));
+    $gender_female_possible_prefix = explode(";", strtolower($config->get("intrum_cdp_gender_female_possible_prefix")));
+
+    if (isset($g) && intval($g) > 0 && isset($payment_address["custom_field"][$g])) {
+        if (in_array(strtolower($payment_address["custom_field"][$g]), $gender_male_possible_prefix)) {
+            $request->setGender('1');
+        } else if (in_array(strtolower($payment_address["custom_field"][$g]), $gender_female_possible_prefix)) {
+            $request->setGender('2');
+        }
+    }
+
+    $d = $config->get("intrum_cdp_dob_id");
+    if (isset($d) && intval($d) > 0 && isset($payment_address["custom_field"][$d])) {
+        try {
+            $dobObject = new DateTime($payment_address["custom_field"][$d]);
+            if ($dobObject != null) {
+                $request->setDateOfBirth($dobObject->format('Y-m-d'));
+            }
+        } catch (\Exception $e) {
+
+        }
+    }
+
     $request->setTelephonePrivate((String)$userPhone);
     $request->setEmail($userEmail);
 
@@ -171,6 +196,35 @@ function CreateCDPProceedOpencartRequestIntrum($order, Config $config, $tmx)
     $request->setPostCode((String)$order["payment_postcode"]);
     $request->setTown((String)$order["payment_city"]);
     $request->setFax((String)$order["fax"]);
+
+    if (!empty($order["payment_company"])) {
+        $request->setCompanyName1($order["payment_company"]);
+    }
+
+    $g = $config->get("intrum_cdp_gender_id");
+    $request->setGender('0');
+    $gender_male_possible_prefix = explode(";", strtolower($config->get("intrum_cdp_gender_male_possible_prefix_array")));
+    $gender_female_possible_prefix = explode(";", strtolower($config->get("intrum_cdp_gender_female_possible_prefix")));
+
+    if (isset($g) && intval($g) > 0 && isset($order["payment_custom_field"][$g])) {
+        if (in_array(strtolower($order["payment_custom_field"][$g]), $gender_male_possible_prefix)) {
+            $request->setGender('1');
+        } else if (in_array(strtolower($order["payment_custom_field"][$g]), $gender_female_possible_prefix)) {
+            $request->setGender('2');
+        }
+    }
+
+    $d = $config->get("intrum_cdp_dob_id");
+    if (isset($d) && intval($d) > 0 && isset($order["payment_custom_field"][$d])) {
+        try {
+            $dobObject = new DateTime($order["payment_custom_field"][$d]);
+            if ($dobObject != null) {
+                $request->setDateOfBirth($dobObject->format('Y-m-d'));
+            }
+        } catch (\Exception $e) {
+
+        }
+    }
 
     $request->setTelephonePrivate((String)$order["telephone"]);
     $request->setEmail((String)$order["email"]);

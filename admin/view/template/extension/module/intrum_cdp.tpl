@@ -169,6 +169,56 @@
                                 </div>
                             </div>
 
+
+                            <div class="form-group">
+                                <!-- Entry label is mentioned here -->
+                                <label class="col-sm-2 control-label" for="input-status">Custom field gender id (in opencart address field)</label>
+
+                                <div class="col-sm-10">
+                                    <!-- The name of the form inputs must start with the controller file name followed by a underscore
+                                    like in this case "intrum_cdp_" after that status is added -->
+                                    <input name="intrum_cdp_gender_id" type="text" id="input-status"
+                                           value="<?php echo $intrum_cdp_gender_id; ?>" class="form-control"/>
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <!-- Entry label is mentioned here -->
+                                <label class="col-sm-2 control-label" for="input-status">Possible male prefix (use semicol (;) to separate)</label>
+
+                                <div class="col-sm-10">
+                                    <!-- The name of the form inputs must start with the controller file name followed by a underscore
+                                    like in this case "intrum_cdp_" after that status is added -->
+                                    <input name="intrum_cdp_gender_male_possible_prefix_array" type="text" id="input-status"
+                                           value="<?php echo $intrum_cdp_gender_male_possible_prefix_array; ?>" class="form-control"/>
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <!-- Entry label is mentioned here -->
+                                <label class="col-sm-2 control-label" for="input-status">Possible female prefix (use semicol (;) to separate)</label>
+
+                                <div class="col-sm-10">
+                                    <!-- The name of the form inputs must start with the controller file name followed by a underscore
+                                    like in this case "intrum_cdp_" after that status is added -->
+                                    <input name="intrum_cdp_gender_female_possible_prefix_array" type="text" id="input-status"
+                                           value="<?php echo $intrum_cdp_gender_female_possible_prefix_array; ?>" class="form-control"/>
+                                </div>
+                            </div>
+
+
+                            <div class="form-group">
+                                <!-- Entry label is mentioned here -->
+                                <label class="col-sm-2 control-label" for="input-status">Custom field date of birth id (in opencart address field)</label>
+
+                                <div class="col-sm-10">
+                                    <!-- The name of the form inputs must start with the controller file name followed by a underscore
+                                    like in this case "intrum_cdp_" after that status is added -->
+                                    <input name="intrum_cdp_dob_id" type="text" id="input-status"
+                                           value="<?php echo $intrum_cdp_dob_id; ?>" class="form-control"/>
+                                </div>
+                            </div>
+
                             <div class="form-group">
                                 <div class="col-sm-10">
                                     <b style="font-size: 20px">Disabled payment method</b>
