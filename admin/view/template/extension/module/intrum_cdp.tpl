@@ -36,8 +36,8 @@
                 <form action="<?php echo $action; ?>" method="post" enctype="multipart/form-data" id="form-intrum-cdp"
                       class="form-horizontal">
                     <ul class="nav nav-tabs">
-                        <li class="active"><a href="#tab-general" data-toggle="tab">Settings</a></li>
-                        <li><a href="#tab-store" data-toggle="tab">Intrum logs</a></li>
+                        <li class="active"><a href="<?php echo $intrumsettingstab; ?>">Settings</a></li>
+                        <li><a href="<?php echo $intrumlogtab; ?>">Intrum logs</a></li>
                     </ul>
                     <div class="tab-content">
                         <div class="tab-pane active" id="tab-general">
@@ -197,52 +197,6 @@
                                 </div>
                             </div>
                             <?php } ?>
-                        </div>
-                        <div class="tab-pane" id="tab-store">
-                            <div class="table-responsive">
-                                <table class="table table-bordered table-hover">
-                                    <thead>
-                                    <tr>
-                                        <td class="text-left">ID</td>
-                                        <td class="text-left">Request ID</a></td>
-                                        <td class="text-left">Request type</a></td>
-                                        <td class="text-left">First name</a></td>
-                                        <td class="text-left">Last name</a></td>
-                                        <td class="text-left">Ip</a></td>
-                                        <td class="text-left">Status</a></td>
-                                        <td class="text-left">Date</a></td>
-                                        <td class="text-right">Options</td>
-                                    </tr>
-                                    </thead>
-                                    <tbody>
-                                    <?php if ($logs) { ?>
-                                    <?php foreach ($logs as $log) { ?>
-                                        <tr>
-                                            <td class="text-left"><?php echo $log['id']; ?></td>
-                                            <td class="text-left"><?php echo $log['requestid']; ?></td>
-                                            <td class="text-left"><?php echo $log['requesttype']; ?></td>
-                                            <td class="text-left"><?php echo $log['firstname']; ?></td>
-                                            <td class="text-left"><?php echo $log['lastname']; ?></td>
-                                            <td class="text-left"><?php echo $log['ip']; ?></td>
-                                            <td class="text-left"><?php echo $log['status']; ?></td>
-                                            <td class="text-left"><?php echo $log['datecolumn']; ?></td>
-                                            <td class="text-right"><a href="<?php echo $log['edit']; ?>#tab-store" data-toggle="tooltip" title="<?php echo $button_edit; ?>" class="btn btn-primary"><i class="fa fa-pencil"></i></a></td>
-                                        </tr>
-                                    <?php } ?>
-                                    <?php } else { ?>
-                                    <tr>
-                                        <td class="text-center" colspan="9">No logs found</td>
-                                    </tr>
-                                    <?php } ?>
-                                    </tbody>
-                                </table>
-                                <div class="row" style="width: 99%;">
-                                    <div class="col-xs-12">
-                                    <div class="col-sm-6 text-left"><?php echo $pagination; ?></div>
-                                    <div class="col-sm-6 text-right"><?php echo $results; ?></div>
-                                    </div>
-                                </div>
-                            </div>
                         </div>
                      </div>
                 </form>
