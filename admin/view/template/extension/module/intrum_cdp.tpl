@@ -221,6 +221,30 @@
 
                             <div class="form-group">
                                 <div class="col-sm-10">
+                                    <b style="font-size: 20px">Payment method mepping</b>
+                                </div>
+                            </div>
+                            <?php foreach($payment_methods as $payment) { ?>
+                            <div class="form-group">
+                                <!-- Entry label is mentioned here -->
+                                <label class="col-sm-2 control-label" for="input-status"><?php echo $payment["name"]; ?></label>
+
+                                <div class="col-sm-10">
+                                    <select name="intrum_cdp_map_<?php echo $payment["code"]; ?>" id="input-status" class="form-control">
+                                        <option value="INVOICE" <?php if (${"intrum_cdp_map_".$payment["code"]} == 'INVOICE') echo 'selected="selected"'; ?>>INVOICE</option>
+                                        <option value="DIRECT-DEBIT" <?php if (${"intrum_cdp_map_".$payment["code"]} == 'DIRECT-DEBIT') echo 'selected="selected"'; ?>>DIRECT-DEBIT</option>
+                                        <option value="CREDIT-CARD" <?php if (${"intrum_cdp_map_".$payment["code"]} == 'CREDIT-CARD') echo 'selected="selected"'; ?>>CREDIT-CARD</option>
+                                        <option value="PRE-PAY" <?php if (${"intrum_cdp_map_".$payment["code"]} == 'PRE-PAY') echo 'selected="selected"'; ?>>PRE-PAY</option>
+                                        <option value="CASH-ON-DELIVERY" <?php if (${"intrum_cdp_map_".$payment["code"]} == 'CASH-ON-DELIVERY') echo 'selected="selected"'; ?>>CASH-ON-DELIVERY</option>
+                                        <option value="E-PAYMENT" <?php if (${"intrum_cdp_map_".$payment["code"]} == 'E-PAYMENT') echo 'selected="selected"'; ?>>E-PAYMENT</option>
+                                        <option value="PAYMENT" <?php if (${"intrum_cdp_map_".$payment["code"]} == 'PAYMENT') echo 'selected="selected"'; ?>>PAYMENT</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <?php } ?>
+
+                            <div class="form-group">
+                                <div class="col-sm-10">
                                     <b style="font-size: 20px">Disabled payment method</b>
                                 </div>
                             </div>

@@ -22,6 +22,13 @@ function getClientIp() {
 }
 
 
+function mapMethod(Config $config, $method) {
+    $payment = $config->get("intrum_cdp_map_".$method);
+    if ($payment) {
+        return $payment;
+    }
+    return 'UNKNOWN';
+}
 
 function CreateCDPOpencartRequestIntrum($payment_address, $shipping_address, $session_data, $total, Config $config, $tmx, $customer_info) {
 
@@ -151,14 +158,6 @@ function CreateCDPOpencartRequestIntrum($payment_address, $shipping_address, $se
         $extraInfo["Value"] = $shipping_address['city'];
         $request->setExtraInfo($extraInfo);
     }
-    if (!empty($orderId)) {
-        $extraInfo["Name"] = 'ORDERID';
-        $extraInfo["Value"] = $orderId;
-        $request->setExtraInfo($extraInfo);
-    }
-    $extraInfo["Name"] = 'PAYMENTMETHOD';
-    $extraInfo["Value"] = 'XXX';///mapMethod($paymentmethod);
-    $request->setExtraInfo($extraInfo);
 
     $extraInfo["Name"] = 'CONNECTIVTY_MODULE';
     $extraInfo["Value"] = 'Intrum Opencart module 1.0.0';
@@ -252,32 +251,37 @@ function CreateCDPProceedOpencartRequestIntrum($order, Config $config, $tmx)
     }
 
     /* shipping information */
-    $extraInfo["Name"] = 'DELIVERY_FIRSTNAME';
-    $extraInfo["Value"] = $order['shipping_firstname'];
-    $request->setExtraInfo($extraInfo);
+    if (isset($order['shipping_firstname'])) {
+        $extraInfo["Name"] = 'DELIVERY_FIRSTNAME';
+        $extraInfo["Value"] = $order['shipping_firstname'];
+        $request->setExtraInfo($extraInfo);
 
-    $extraInfo["Name"] = 'DELIVERY_LASTNAME';
-    $extraInfo["Value"] = $order['shipping_lastname'];
-    $request->setExtraInfo($extraInfo);
+        $extraInfo["Name"] = 'DELIVERY_LASTNAME';
+        $extraInfo["Value"] = $order['shipping_lastname'];
+        $request->setExtraInfo($extraInfo);
 
-    $extraInfo["Name"] = 'DELIVERY_FIRSTLINE';
-    $extraInfo["Value"] = trim($order['shipping_address_1'] . ' ' . $order['shipping_address_2']);
-    $request->setExtraInfo($extraInfo);
+        $extraInfo["Name"] = 'DELIVERY_FIRSTLINE';
+        $extraInfo["Value"] = trim($order['shipping_address_1'] . ' ' . $order['shipping_address_2']);
+        $request->setExtraInfo($extraInfo);
 
-    $extraInfo["Name"] = 'DELIVERY_HOUSENUMBER';
-    $extraInfo["Value"] = '';
-    $request->setExtraInfo($extraInfo);
+        $extraInfo["Name"] = 'DELIVERY_HOUSENUMBER';
+        $extraInfo["Value"] = '';
+        $request->setExtraInfo($extraInfo);
 
-    $extraInfo["Name"] = 'DELIVERY_COUNTRYCODE';
-    $extraInfo["Value"] = $order["shipping_iso_code_2"];
-    $request->setExtraInfo($extraInfo);
+        $extraInfo["Name"] = 'DELIVERY_COUNTRYCODE';
+        $extraInfo["Value"] = $order["shipping_iso_code_2"];
+        $request->setExtraInfo($extraInfo);
 
-    $extraInfo["Name"] = 'DELIVERY_POSTCODE';
-    $extraInfo["Value"] = $order['shipping_postcode'];
-    $request->setExtraInfo($extraInfo);
+        $extraInfo["Name"] = 'DELIVERY_POSTCODE';
+        $extraInfo["Value"] = $order['shipping_postcode'];
+        $request->setExtraInfo($extraInfo);
 
-    $extraInfo["Name"] = 'DELIVERY_TOWN';
-    $extraInfo["Value"] = $order['shipping_city'];
+        $extraInfo["Name"] = 'DELIVERY_TOWN';
+        $extraInfo["Value"] = $order['shipping_city'];
+        $request->setExtraInfo($extraInfo);
+    }
+    $extraInfo["Name"] = 'PAYMENTMETHOD';
+    $extraInfo["Value"] = mapMethod($config, $order["payment_code"]);
     $request->setExtraInfo($extraInfo);
 
     $extraInfo["Name"] = 'CONNECTIVTY_MODULE';

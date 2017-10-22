@@ -282,6 +282,13 @@ class ControllerExtensionModuleIntrumCdp extends Controller {
             }
         }
         $payments = $this->getPaymentMehods();
+        foreach ($payments as $payment) {
+            if (isset($this->request->post['intrum_cdp_map_'.$payment["code"]])) {
+                $data['intrum_cdp_map_'.$payment["code"]] = $this->request->post['intrum_cdp_map_'.$payment["code"]];
+            } else {
+                $data['intrum_cdp_map_'.$payment["code"]] = $this->config->get('intrum_cdp_map_'.$payment["code"]);
+            }
+        }
         $data["payment_methods"] = $payments;
         $data["statuses"] = $this->getStatuses();
         /**
